@@ -34,13 +34,8 @@ impl MyWidget for Graph2DWidget {
             self.data.borrow_mut().clear();
         }
 
-        let mut x_min = 0.0;
-        let mut x_max = 0.0;
-        let mut y_min = 0.0;
-        let mut y_max = 0.0;
-
-        data.get_x_limit(&mut x_min, &mut x_max);
-        data.get_y_limit(&mut y_min, &mut y_max);
+        let (x_min, x_max) = data.get_x_limit();
+        let (y_min, y_max) = data.get_y_limit();
 
         if self.data.borrow().is_empty() {
             self.limit = Limit {

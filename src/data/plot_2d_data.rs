@@ -65,14 +65,12 @@ impl Plot2DData {
         }
     }
 
-    pub fn get_x_limit(&self, x_min: &mut f64, x_max: &mut f64) {
-        *x_min = self.x_min;
-        *x_max = self.x_max;
+    pub fn get_x_limit(&self) -> (f64, f64) {
+        (self.x_min, self.x_max)
     }
 
-    pub fn get_y_limit(&self, y_min: &mut f64, y_max: &mut f64) {
-        *y_min = self.y_min;
-        *y_max = self.y_max;
+    pub fn get_y_limit(&self) -> (f64, f64) {
+        (self.y_min, self.y_max)
     }
 
     pub fn set_value(&mut self, index: usize, nx: f64, ny: f64) {

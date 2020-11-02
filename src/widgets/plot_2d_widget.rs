@@ -99,12 +99,8 @@ impl Plot2DWidget {
                     set_draw_color(plot.color);
                     set_line_style(plot.style, plot.width);
 
-                    let mut x_min = 0.0;
-                    let mut x_max = 0.0;
-                    let mut y_min = 0.0;
-                    let mut y_max = 0.0;
-                    plot.get_x_limit(&mut x_min, &mut x_max);
-                    plot.get_y_limit(&mut y_min, &mut y_max);
+                    let (x_min, x_max) = plot.get_x_limit();
+                    let (y_min, y_max) = plot.get_y_limit();
                     let x_scale = width / (x_max - x_min);
                     let y_scale = height / (y_max - y_min);
 
