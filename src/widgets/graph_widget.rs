@@ -67,23 +67,21 @@ impl GraphWidget {
 
         for (j, &d) in data.iter().enumerate() {
             for i in 0..d.length {
-                let mut px = 0.0;
-                let mut py = 0.0;
+                if let Some((mut px, mut py)) = d.get_value(i) {
+                    // Scale and shift
+                    px = ((px - self.limit_c.x_left) / width) * w + self.widget.x() as f64;
+                    py = h - ((py - self.limit_c.y_left) / height) * h + self.widget.y() as f64;
 
-                d.get_value(i, &mut px, &mut py);
-
-                // Scale and shift
-                px = ((px - self.limit_c.x_left) / width) * w + self.widget.x() as f64;
-                py = h - ((py - self.limit_c.y_left) / height) * h + self.widget.y() as f64;
-
-                let dist = f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
-                if dist < m_dist {
-                    d.get_value(i, &mut px, &mut py);
-                    m_dist = dist;
-                    tip.x = px;
-                    tip.y = py;
-                    tip.plot = j;
-                }
+                    let dist = f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
+                    if dist < m_dist {
+                        if let Some((px, py)) = d.get_value(i) {
+                            m_dist = dist;
+                            tip.x = px;
+                            tip.y = py;
+                            tip.plot = j;
+                        }
+                    }
+                };
             }
         }
 

@@ -106,17 +106,12 @@ impl Plot2DWidget {
 
                     begin_line();
                     for j in 0..plot.length {
-                        let mut px = 0.0;
-                        let mut py = 0.0;
-
-                        plot.get_value(j, &mut px, &mut py);
-
-                        // Scale and shift
-                        // px = ((px - limit_c.x_left) / width) * wd as f64 + x as f64;
-                        // py = ht as f64 - ((py - limit_c.y_left) / height) * ht as f64 + y as f64;
-                        px = (px - x_min) * x_scale + x as f64;
-                        py = (py - y_min) * y_scale + y as f64;
-                        vertex(px, py);
+                        if let Some((mut px, mut py)) = plot.get_value(j) {
+                            // Scale and shift
+                            px = (px - x_min) * x_scale + x as f64;
+                            py = (py - y_min) * y_scale + y as f64;
+                            vertex(px, py);
+                        };
                     }
                     end_line();
                 }

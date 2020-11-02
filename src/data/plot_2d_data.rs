@@ -85,10 +85,11 @@ impl Plot2DData {
         }
     }
 
-    pub fn get_value(&self, index: usize, nx: &mut f64, ny: &mut f64) {
+    pub fn get_value(&self, index: usize) -> Option<(f64, f64)> {
         if index < self.length {
-            *nx = self.x[index];
-            *ny = self.y[index];
+            Some((self.x[index], self.y[index]))
+        } else {
+            None
         }
     }
 }
