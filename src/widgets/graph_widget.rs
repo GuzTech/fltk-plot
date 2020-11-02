@@ -52,7 +52,7 @@ impl GraphWidget {
         }
     }
 
-    pub fn get_closest_point(
+    fn get_closest_point(
         &self,
         data: &[&Plot2DData],
         tip: &mut DataTip,
