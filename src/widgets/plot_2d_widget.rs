@@ -40,7 +40,7 @@ impl Plot2DWidget {
 
             // Background
             draw_rect_fill(x, y, wd, ht, Color::White);
-            set_line_style(LineStyle::Solid, 1); // TODO - Have to check if 1 is correct here!
+            set_line_style(LineStyle::Solid, 1);
             draw_rect_with_color(x, y, wd, ht, Color::Black);
 
             // Captions and labels
