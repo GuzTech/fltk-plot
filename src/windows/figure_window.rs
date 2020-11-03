@@ -3,6 +3,7 @@ use std::ops::{Deref, DerefMut};
 use fltk::{draw::*, window::*};
 
 use crate::widgets::plot_2d_widget::Plot2DWidget;
+use crate::widgets::stem_2d_widget::Stem2DWidget;
 use crate::widgets::widget::MyWidget;
 
 #[allow(dead_code)]
@@ -83,14 +84,15 @@ impl FigureWindow {
                     self.plots[subplot] = Some(plot_widget);
                 }
                 PlotType::STEM => {
-                    // self.plots[subplot] = Some(Stem2DWidget::new(
-                    //     posx + YLBL_SPC,
-                    //     posy + CAP_SPC,
-                    //     dx - YLBL_SPC,
-                    //     dy - (CAP_SPC + XLBL_SPC),
-                    //     "Subfig",
-                    // ));
-                    // self.plots[subplot].put_data(x, y, style, width, column);
+                    let mut stem_widget: Box<dyn MyWidget> = Box::new(Stem2DWidget::new(
+                        posx + FigureWindow::YLBL_SPC,
+                        posy + FigureWindow::CAP_SPC,
+                        dx - FigureWindow::YLBL_SPC,
+                        dy - (FigureWindow::CAP_SPC + FigureWindow::XLBL_SPC),
+                        "Subfig",
+                    ));
+                    stem_widget.put_data(x, y, style, width, color);
+                    self.plots[subplot] = Some(stem_widget);
                 }
                 PlotType::QUIVER => {}
             }
@@ -128,6 +130,22 @@ impl FigureWindow {
     ) {
         if !self.does_subplot_exist(subplot) {
             self.create_subplot(x, y, style, width, color, subplot, PlotType::PLOT);
+        } else {
+            self.update_subplot(x, y, style, width, color, subplot);
+        }
+    }
+
+    pub fn stem(
+        &mut self,
+        x: &[f64],
+        y: &[f64],
+        style: LineStyle,
+        width: i32,
+        color: Color,
+        subplot: usize,
+    ) {
+        if !self.does_subplot_exist(subplot) {
+            self.create_subplot(x, y, style, width, color, subplot, PlotType::STEM);
         } else {
             self.update_subplot(x, y, style, width, color, subplot);
         }
