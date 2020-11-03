@@ -71,6 +71,29 @@ impl Stem2DWidget {
 
             push_clip(x, y, wd, ht);
 
+            // Determine the min/max values of all the plots in this widget
+            let mut plot_x_min = f64::MAX;
+            let mut plot_x_max = f64::MIN;
+            let mut plot_y_min = f64::MAX;
+            let mut plot_y_max = f64::MIN;
+
+            for plot_data in &*data.borrow() {
+                if plot_data.is_some() {
+                    let plot = plot_data.as_ref().unwrap();
+
+                    let (x_min, x_max) = plot.get_x_limit();
+                    let (y_min, y_max) = plot.get_y_limit();
+
+                    plot_x_min = f64::min(plot_x_min, x_min);
+                    plot_x_max = f64::max(plot_x_max, x_max);
+                    plot_y_min = f64::min(plot_y_min, y_min);
+                    plot_y_max = f64::max(plot_y_max, y_max);
+                }
+            }
+
+            let x_scale = lim_width / (plot_x_max - plot_x_min);
+            let y_scale = lim_height / (plot_y_max - plot_y_min);
+
             // Draw grid lines
             set_font(Font::Helvetica, 10);
             set_draw_color(Color::Black);
@@ -90,7 +113,7 @@ impl Stem2DWidget {
                 draw_text(
                     format!(
                         "{:.2}",
-                        i as f64 * wd as f64 / (xn as f64 + 1.0) + limit_c.x_left
+                        plot_x_min + i as f64 * (plot_x_max - plot_x_min) / (xn as f64 + 1.0)
                     )
                     .as_str(),
                     x + dx * i + 2,
@@ -118,7 +141,7 @@ impl Stem2DWidget {
                 draw_text(
                     format!(
                         "{:.2}",
-                        i as f64 * ht as f64 / (yn as f64 + 1.0) + limit_c.y_left
+                        plot_y_min + i as f64 * (plot_y_max - plot_y_min) / (yn as f64 + 1.0)
                     )
                     .as_str(),
                     x + 2,
@@ -133,18 +156,13 @@ impl Stem2DWidget {
                     set_draw_color(plot.color);
                     set_line_style(plot.style, plot.width);
 
-                    let (x_min, x_max) = plot.get_x_limit();
-                    let (y_min, y_max) = plot.get_y_limit();
-                    let x_scale = lim_width / (x_max - x_min);
-                    let y_scale = lim_height / (y_max - y_min);
-
                     for j in 0..plot.length {
                         if let Some((px, py)) = plot.get_value(j) {
                             begin_line();
 
                             // Scale and shift
-                            let cx = (px - x_min) * x_scale + x as f64;
-                            let cy = (py - y_min) * y_scale + y as f64;
+                            let cx = (px - plot_x_min) * x_scale + x as f64;
+                            let cy = ht as f64 - (py - plot_y_min) * y_scale + y as f64;
                             let c0 = (lim_height / 2.0) + y as f64;
 
                             vertex(cx, c0);

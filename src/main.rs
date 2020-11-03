@@ -34,6 +34,7 @@ fn main() {
 
     linspace(&mut t, 0.0, 2.0 * std::f64::consts::PI, N);
     arrayfun(&t, &mut x, &f64::sin);
+    //arrayfun(&t, &mut x, &|x| 10.0 * f64::sin(x));
     arrayfun(&t, &mut y, &|x: f64| 0.5 - 0.5 * f64::exp(-x));
 
     let mut fig = FigureWindow::new(640, 480, "Figure 1", 1, 2);
