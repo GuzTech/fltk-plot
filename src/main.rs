@@ -39,10 +39,19 @@ fn main() {
     let mut fig = FigureWindow::new(640, 480, "Figure 1", 1, 2);
     fig.plot(&t, &x, LineStyle::Solid, 2, Color::Red, 0);
     fig.set_hold(true, 0);
-    fig.set_grid(true, 0);
     fig.plot(&t, &y, LineStyle::Dash, 2, Color::Blue, 0);
     fig.set_hold(false, 0);
     fig.plot(&x, &y, LineStyle::Solid, 2, Color::Red, 1);
+
+    fig.set_x_label("Time [s]", 0);
+    fig.set_y_label("Voltage [V]", 0);
+    fig.set_caption("Votage vs. time", 0);
+    fig.set_grid(true, 0);
+
+    fig.set_x_label("Voltage [V]", 1);
+    fig.set_y_label("Voltage [V]", 1);
+    fig.set_caption("Signal 1 vs Signal 2", 1);
+    fig.set_grid(true, 1);
 
     fig.end();
     fig.show();

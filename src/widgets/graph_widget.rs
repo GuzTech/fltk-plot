@@ -10,9 +10,9 @@ use crate::widgets::widget::*;
 #[derive(Clone, Debug)]
 pub struct GraphWidget {
     pub widget: Widget,
-    pub x_label: String,
-    pub y_label: String,
-    pub caption: String,
+    pub x_label: Rc<RefCell<String>>,
+    pub y_label: Rc<RefCell<String>>,
+    pub caption: Rc<RefCell<String>>,
     pub limit: Limit,
     pub limit_c: Limit,
     pub curr_data_tip: Rc<RefCell<usize>>,
@@ -36,9 +36,9 @@ impl GraphWidget {
         };
         GraphWidget {
             widget: Widget::new(x, y, width, height, caption),
-            x_label: String::default(),
-            y_label: String::default(),
-            caption: caption.into(),
+            x_label: Rc::from(RefCell::from(String::default())),
+            y_label: Rc::from(RefCell::from(String::default())),
+            caption: Rc::from(RefCell::from(caption.to_string())),
             limit: l,
             limit_c: l,
             curr_data_tip: Rc::from(RefCell::from(0)),
@@ -100,17 +100,17 @@ impl MyWidget for GraphWidget {
     }
 
     fn set_x_label(&mut self, label: &str) {
-        self.x_label = label.to_string();
+        *self.x_label.borrow_mut() = label.to_string();
         redraw();
     }
 
     fn set_y_label(&mut self, label: &str) {
-        self.y_label = label.to_string();
+        *self.y_label.borrow_mut() = label.to_string();
         redraw();
     }
 
     fn set_caption(&mut self, caption: &str) {
-        self.caption = caption.to_string();
+        *self.caption.borrow_mut() = caption.to_string();
         redraw();
     }
 

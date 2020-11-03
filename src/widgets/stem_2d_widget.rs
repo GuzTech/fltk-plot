@@ -28,10 +28,13 @@ impl Stem2DWidget {
         let yn = *self.yn_grid.borrow();
         let grid = self.grid.clone();
         let data = self.data.clone();
+        let caption = self.widget.caption.clone();
+        let x_label = self.widget.x_label.clone();
+        let y_label = self.widget.y_label.clone();
 
         self.widget.draw2(move |p| {
-            let width = limit_c.x_right - limit_c.x_left;
-            let height = limit_c.y_right - limit_c.y_left;
+            let lim_width = limit_c.x_right - limit_c.x_left;
+            let lim_height = limit_c.y_right - limit_c.y_left;
 
             let x = p.x();
             let y = p.y();
@@ -46,8 +49,25 @@ impl Stem2DWidget {
             // Captions and labels
             set_font(Font::Helvetica, 12);
             set_draw_color(Color::Black);
-            //
-            //
+            let text_width = width(caption.borrow().as_str()) as i32;
+            draw_text(
+                caption.borrow().as_str(),
+                x + (lim_width as i32 / 2) - (text_width / 2),
+                y - 7,
+            );
+            let text_width = width(x_label.borrow().as_str()) as i32;
+            draw_text(
+                x_label.borrow().as_str(),
+                x + (lim_width as i32 / 2) - (text_width / 2),
+                y + lim_height as i32 + 12,
+            );
+            let text_width = width(y_label.borrow().as_str()) as i32;
+            draw_text_angled(
+                90,
+                y_label.borrow().as_str(),
+                x - 5,
+                y + (lim_height as i32 / 2) - (text_width / 2),
+            );
 
             push_clip(x, y, wd, ht);
 
@@ -66,7 +86,7 @@ impl Stem2DWidget {
                 set_draw_color(Color::Black);
                 set_line_style(LineStyle::Solid, 1);
                 draw_line(x + dx * i, y, x + dx * i, y + 10);
-                draw_line(x + dx * i, y + height as i32, x + dx * i, y + ht - 10);
+                draw_line(x + dx * i, y + lim_height as i32, x + dx * i, y + ht - 10);
                 //
                 //
             }
@@ -76,16 +96,16 @@ impl Stem2DWidget {
                 if *grid.borrow() {
                     set_draw_color(Color::Light2);
                     set_line_style(LineStyle::Dash, 1);
-                    draw_line(x, y + dy * i, x + width as i32, y + dy * i);
+                    draw_line(x, y + dy * i, x + lim_width as i32, y + dy * i);
                 }
 
                 set_draw_color(Color::Black);
                 set_line_style(LineStyle::Solid, 1);
                 draw_line(x, y + dy * i, x + 10, y + dy * i);
                 draw_line(
-                    x + width as i32,
+                    x + lim_width as i32,
                     y + dy * i,
-                    x + width as i32 - 10,
+                    x + lim_width as i32 - 10,
                     y + dy * i,
                 );
                 //
@@ -101,8 +121,8 @@ impl Stem2DWidget {
 
                     let (x_min, x_max) = plot.get_x_limit();
                     let (y_min, y_max) = plot.get_y_limit();
-                    let x_scale = width / (x_max - x_min);
-                    let y_scale = height / (y_max - y_min);
+                    let x_scale = lim_width / (x_max - x_min);
+                    let y_scale = lim_height / (y_max - y_min);
 
                     for j in 0..plot.length {
                         if let Some((px, py)) = plot.get_value(j) {
@@ -111,7 +131,7 @@ impl Stem2DWidget {
                             // Scale and shift
                             let cx = (px - x_min) * x_scale + x as f64;
                             let cy = (py - y_min) * y_scale + y as f64;
-                            let c0 = (height / 2.0) + y as f64;
+                            let c0 = (lim_height / 2.0) + y as f64;
 
                             vertex(cx, c0);
                             vertex(cx, cy);
