@@ -94,7 +94,7 @@ impl Plot2DWidget {
                     )
                     .as_str(),
                     x + dx * i + 2,
-                    y + height as i32 - 2,
+                    y + ht as i32 - 2,
                 );
             }
 
@@ -122,7 +122,7 @@ impl Plot2DWidget {
                     )
                     .as_str(),
                     x + 2,
-                    height as i32 + y - dy * i - 5,
+                    ht as i32 + y - dy * i - 5,
                 );
             }
 

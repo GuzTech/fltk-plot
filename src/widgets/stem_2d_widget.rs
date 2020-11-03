@@ -87,8 +87,15 @@ impl Stem2DWidget {
                 set_line_style(LineStyle::Solid, 1);
                 draw_line(x + dx * i, y, x + dx * i, y + 10);
                 draw_line(x + dx * i, y + lim_height as i32, x + dx * i, y + ht - 10);
-                //
-                //
+                draw_text(
+                    format!(
+                        "{:.2}",
+                        i as f64 * wd as f64 / (xn as f64 + 1.0) + limit_c.x_left
+                    )
+                    .as_str(),
+                    x + dx * i + 2,
+                    y + ht as i32 - 2,
+                );
             }
 
             let dy = ht / (yn + 1);
@@ -108,8 +115,15 @@ impl Stem2DWidget {
                     x + lim_width as i32 - 10,
                     y + dy * i,
                 );
-                //
-                //
+                draw_text(
+                    format!(
+                        "{:.2}",
+                        i as f64 * ht as f64 / (yn as f64 + 1.0) + limit_c.y_left
+                    )
+                    .as_str(),
+                    x + 2,
+                    ht as i32 + y - dy * i - 5,
+                );
             }
 
             // Plot the data
