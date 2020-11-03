@@ -27,7 +27,7 @@ fn arrayfun(input: &[f64], output: &mut Vec<f64>, fun: &dyn Fn(f64) -> f64) {
 fn main() {
     let app = App::default();
 
-    const N: usize = 1000;
+    const N: usize = 100;
     let mut t: Vec<f64> = Vec::with_capacity(N);
     let mut x: Vec<f64> = Vec::with_capacity(N);
     let mut y: Vec<f64> = Vec::with_capacity(N);
@@ -46,6 +46,12 @@ fn main() {
 
     fig.end();
     fig.show();
+
+    let mut fig2 = FigureWindow::new(640, 480, "Figure 2", 1, 1);
+    fig2.stem(&t, &x, LineStyle::Solid, 2, Color::Green, 0);
+
+    fig2.end();
+    fig2.show();
 
     app.run().unwrap();
 }
