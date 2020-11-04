@@ -189,7 +189,9 @@ impl Stem2DWidget {
                             let cy = widget_height as f64
                                 - ((py - y_left) / lim_height) * widget_height as f64
                                 + widget_y as f64;
-                            let c0 = (widget_height as f64 / 2.0) + widget_y as f64;
+                            let c0 = widget_height as f64
+                                - (-y_left / lim_height) * widget_height as f64
+                                + widget_y as f64;
 
                             vertex(cx, c0);
                             vertex(cx, cy);
