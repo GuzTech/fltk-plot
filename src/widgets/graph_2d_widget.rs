@@ -11,6 +11,7 @@ use crate::widgets::{graph_widget::*, widget::*};
 pub struct Graph2DWidget {
     pub widget: GraphWidget,
     pub data: Rc<RefCell<Vec<Option<Plot2DData>>>>,
+    //closest_data_tip: Rc<RefCell<Option<&mut DataTip>>>,
 }
 
 #[allow(dead_code)]
@@ -143,6 +144,18 @@ impl MyWidget for Graph2DWidget {
                         Graph2DWidget::LEFT_BUTTON => {}
                         Graph2DWidget::MIDDLE_BUTTON => {
                             if closest_data_tip.is_some() {
+                                let mut tip = closest_data_tip.unwrap();
+
+                                let mut px = tip.x;
+                                let mut py = tip.y;
+                                px = ((px - limit_c.borrow().x_left) / wd) * wid.width() as f64
+                                    + wid.x() as f64;
+                                py = wid.height() as f64
+                                    - ((py - limit_c.borrow().y_left) / ht) * wid.height() as f64
+                                    + wid.y() as f64;
+
+                                tip.lx = mx - px as i32;
+                                tip.ly = my - py as i32;
                             } else {
                                 let mut dx = mx - *wid.zoom_x.borrow();
                             }
@@ -158,51 +171,54 @@ impl MyWidget for Graph2DWidget {
                     let button = fltk::app::event_button();
 
                     match button {
-                        Graph2DWidget::LEFT_BUTTON => {
-                            if *wid.zooming.borrow() {
-                                let x = wid.x();
-                                let y = wid.y();
-                                let w = wid.width();
-                                let h = wid.height();
+                        Graph2DWidget::LEFT_BUTTON if *wid.zooming.borrow() => {
+                            let widget_x = wid.x();
+                            let widget_y = wid.y();
+                            let widget_width = wid.width();
+                            let widget_height = wid.height();
 
-                                let mut dx = mx - *wid.zoom_x.borrow();
-                                let mut dy = my - *wid.zoom_y.borrow();
-                                *wid.zooming.borrow_mut() = false;
+                            let zoom_x = *wid.zoom_x.borrow();
+                            let zoom_y = *wid.zoom_y.borrow();
+
+                            let mut dx = i32::abs(mx - zoom_x);
+                            let mut dy = i32::abs(my - zoom_y);
+                            *wid.zooming.borrow_mut() = false;
+                            *wid.zoom_x.borrow_mut() = i32::min(zoom_x, mx);
+                            *wid.zoom_y.borrow_mut() = i32::min(zoom_y, my);
+
+                            if dx > 2 || dy > 2 {
+                                // Clip
+                                let zoom_x = *wid.zoom_x.borrow();
+                                let zoom_y = *wid.zoom_y.borrow();
+                                *wid.zoom_x.borrow_mut() = i32::max(zoom_x, widget_x);
+                                *wid.zoom_y.borrow_mut() = i32::max(zoom_y, widget_y);
 
                                 let zoom_x = *wid.zoom_x.borrow();
                                 let zoom_y = *wid.zoom_y.borrow();
-                                *wid.zoom_x.borrow_mut() = i32::min(zoom_x, x);
-                                *wid.zoom_y.borrow_mut() = i32::min(zoom_y, y);
-                                dx = i32::abs(dx);
-                                dy = i32::abs(dy);
+                                dx = i32::min(dx, widget_width + widget_x - zoom_x);
+                                dy = i32::min(dy, widget_height + widget_y - zoom_y);
 
-                                if dx > 2 || dy > 2 {
-                                    // Clip
-                                    let zoom_x = *wid.zoom_x.borrow();
-                                    let zoom_y = *wid.zoom_y.borrow();
-                                    *wid.zoom_x.borrow_mut() = i32::max(zoom_x, x);
-                                    *wid.zoom_y.borrow_mut() = i32::max(zoom_y, y);
+                                // Scale + shift
+                                let x_left = limit_c.borrow().x_left;
+                                let y_left = limit_c.borrow().y_left;
 
-                                    let zoom_x = *wid.zoom_x.borrow();
-                                    let zoom_y = *wid.zoom_y.borrow();
-                                    dx = i32::min(dx, w + x - zoom_x);
-                                    dy = i32::min(dy, h + y - zoom_y);
-
-                                    // Scale + shift
-                                    let x_left = limit_c.borrow().x_left;
-                                    let y_left = limit_c.borrow().y_left;
-
-                                    limit_c.borrow_mut().x_left =
-                                        ((zoom_x - x) as f64 / w as f64) * wd + x_left;
-                                    limit_c.borrow_mut().x_right =
-                                        x_left + (dx as f64 / w as f64) * wd;
-                                    limit_c.borrow_mut().y_left =
-                                        ((y + h - dy - zoom_y) / h) as f64 * ht + y_left;
-                                    limit_c.borrow_mut().y_right = y_left + (dy / h) as f64 * ht;
-                                }
-
-                                fltk::app::redraw();
+                                limit_c.borrow_mut().x_left =
+                                    ((zoom_x - widget_x) as f64 / widget_width as f64) * wd
+                                        + x_left;
+                                let x_left = limit_c.borrow().x_left;
+                                limit_c.borrow_mut().x_right =
+                                    x_left + (dx as f64 / widget_width as f64) * wd;
+                                limit_c.borrow_mut().y_left =
+                                    ((widget_y + widget_height - dy - zoom_y) as f64
+                                        / widget_height as f64)
+                                        * ht
+                                        + y_left;
+                                let y_left = limit_c.borrow().y_left;
+                                limit_c.borrow_mut().y_right =
+                                    y_left + (dy as f64 / widget_height as f64) * ht;
                             }
+
+                            fltk::app::redraw();
                         }
                         _ => {}
                     }
