@@ -57,11 +57,11 @@ fn main() {
     fig.end();
     fig.show();
 
-    let mut fig2 = FigureWindow::new(640, 480, "Figure 2", 1, 1);
-    fig2.stem(&t, &x, LineStyle::Solid, 2, Color::Green, 0);
+    // let mut fig2 = FigureWindow::new(640, 480, "Figure 2", 1, 1);
+    // fig2.stem(&t, &x, LineStyle::Solid, 2, Color::Green, 0);
 
-    fig2.end();
-    fig2.show();
+    // fig2.end();
+    // fig2.show();
 
     app.run().unwrap();
 }

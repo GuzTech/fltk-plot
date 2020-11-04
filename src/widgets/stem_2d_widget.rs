@@ -22,19 +22,23 @@ impl Stem2DWidget {
     }
 
     pub fn draw(&mut self) {
-        let limit_c = self.limit_c;
+        let limit_c = self.limit_c.clone();
         // TODO: These two below are not cloned, maybe they should be. I need to check this!
         let xn = *self.xn_grid.borrow();
         let yn = *self.yn_grid.borrow();
         let grid = self.grid.clone();
         let data = self.data.clone();
+        let data_tips = self.widget.data_tips.clone();
         let caption = self.widget.caption.clone();
         let x_label = self.widget.x_label.clone();
         let y_label = self.widget.y_label.clone();
+        let zooming = self.widget.zooming.clone();
+        let zoom_x = self.widget.zoom_x.clone();
+        let zoom_y = self.widget.zoom_y.clone();
 
         self.widget.draw2(move |p| {
-            let lim_width = limit_c.x_right - limit_c.x_left;
-            let lim_height = limit_c.y_right - limit_c.y_left;
+            let lim_width = limit_c.borrow().x_right - limit_c.borrow().x_left;
+            let lim_height = limit_c.borrow().y_right - limit_c.borrow().y_left;
 
             let x = p.x();
             let y = p.y();
@@ -173,6 +177,28 @@ impl Stem2DWidget {
                             draw_circle(cx, cy, 4.0);
                         };
                     }
+                }
+            }
+
+            // Draw data tips
+            set_line_style(LineStyle::Solid, 1);
+            for tip in &*data_tips.borrow() {
+                let mut px = tip.x;
+                let mut py = tip.y;
+
+                px = ((px - limit_c.borrow().x_left) / lim_width) * wd as f64 + x as f64;
+                py = ht as f64 - ((py - limit_c.borrow().y_left) / lim_height) * ht as f64
+                    + y as f64;
+                let px = px as i32;
+                let py = py as i32;
+
+                if px >= x && px <= (x + wd) && py >= y && py <= (y + ht) {
+                    draw_rect_fill(px, py, 10, 10, Color::Black);
+                    draw_text(
+                        format!("x: {:.2} y: {:.2}", px, py).as_str(),
+                        px + tip.lx,
+                        py + tip.ly,
+                    );
                 }
             }
 

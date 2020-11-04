@@ -13,9 +13,9 @@ pub struct GraphWidget {
     pub x_label: Rc<RefCell<String>>,
     pub y_label: Rc<RefCell<String>>,
     pub caption: Rc<RefCell<String>>,
-    pub limit: Limit,
-    pub limit_c: Limit,
-    pub curr_data_tip: Rc<RefCell<usize>>,
+    pub data_tips: Rc<RefCell<Vec<DataTip>>>,
+    pub limit: Rc<RefCell<Limit>>,
+    pub limit_c: Rc<RefCell<Limit>>,
     pub zooming: Rc<RefCell<bool>>,
     pub grid: Rc<RefCell<bool>>,
     pub hold: Rc<RefCell<bool>>,
@@ -39,9 +39,9 @@ impl GraphWidget {
             x_label: Rc::from(RefCell::from(String::default())),
             y_label: Rc::from(RefCell::from(String::default())),
             caption: Rc::from(RefCell::from(caption.to_string())),
-            limit: l,
-            limit_c: l,
-            curr_data_tip: Rc::from(RefCell::from(0)),
+            data_tips: Rc::from(RefCell::from(Vec::new())),
+            limit: Rc::from(RefCell::from(l)),
+            limit_c: Rc::from(RefCell::from(l)),
             zooming: Rc::from(RefCell::from(false)),
             grid: Rc::from(RefCell::from(false)),
             hold: Rc::from(RefCell::from(false)),
@@ -52,40 +52,81 @@ impl GraphWidget {
         }
     }
 
-    fn get_closest_point(
+    pub fn get_closest_point(
         &self,
-        data: &[&Plot2DData],
-        tip: &mut DataTip,
+        data: &[Option<Plot2DData>],
         mx: i32,
         my: i32,
         width: f64,
         height: f64,
-    ) -> bool {
-        let w = self.widget.width() as f64;
-        let h = self.widget.height() as f64;
-        let mut m_dist = w * w + h * h;
+    ) -> Option<DataTip> {
+        let widget_width = self.widget.width() as f64;
+        let widget_height = self.widget.height() as f64;
+        let mut m_dist = widget_width * widget_width + widget_height * widget_height;
 
-        for (j, &d) in data.iter().enumerate() {
-            for i in 0..d.length {
-                if let Some((mut px, mut py)) = d.get_value(i) {
-                    // Scale and shift
-                    px = ((px - self.limit_c.x_left) / width) * w + self.widget.x() as f64;
-                    py = h - ((py - self.limit_c.y_left) / height) * h + self.widget.y() as f64;
+        let mut tip = DataTip::default();
 
-                    let dist = f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
-                    if dist < m_dist {
-                        if let Some((px, py)) = d.get_value(i) {
-                            m_dist = dist;
-                            tip.x = px;
-                            tip.y = py;
-                            tip.plot = j;
+        for (j, d) in data.iter().enumerate() {
+            if d.is_some() {
+                let d = d.as_ref().unwrap();
+
+                for i in 0..d.length {
+                    if let Some((mut px, mut py)) = d.get_value(i) {
+                        // Scale and shift
+                        px = ((px - self.limit_c.borrow().x_left) / width) * widget_width
+                            + self.widget.x() as f64;
+                        py = widget_height
+                            - ((py - self.limit_c.borrow().y_left) / height) * widget_height
+                            + self.widget.y() as f64;
+
+                        let dist = f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
+                        if dist < m_dist {
+                            if let Some((px, py)) = d.get_value(i) {
+                                m_dist = dist;
+                                tip.x = px;
+                                tip.y = py;
+                                tip.plot = j;
+                            }
                         }
-                    }
-                };
+                    };
+                }
             }
         }
 
-        m_dist <= 10.0
+        if m_dist <= 10.0 {
+            Some(tip)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_closest_datatip(
+        &self,
+        mx: i32,
+        my: i32,
+        width: f64,
+        height: f64,
+    ) -> Option<DataTip> {
+        let closest = None;
+
+        let height = if height != 0.0 { height } else { 1.0 };
+
+        for closest in &*self.data_tips.borrow_mut() {
+            let px = ((closest.x - self.limit_c.borrow().x_left) / width)
+                * self.widget.width() as f64
+                + self.widget.x() as f64;
+            let py = self.widget.height() as f64
+                - ((closest.y - self.limit_c.borrow().y_left) / height)
+                    * self.widget.height() as f64
+                + self.widget.y() as f64;
+            let distance = i32::max(i32::abs(px as i32 - mx), i32::abs(py as i32 - my));
+
+            if distance < 15 {
+                break;
+            }
+        }
+
+        closest
     }
 }
 

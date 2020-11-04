@@ -16,7 +16,7 @@ impl std::fmt::Debug for dyn MyWidget {
     }
 }
 
-#[derive(Debug)]
+#[derive(Copy, Clone, Debug, Default)]
 pub struct DataTip {
     pub x: f64,
     pub y: f64,
