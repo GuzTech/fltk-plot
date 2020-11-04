@@ -119,9 +119,9 @@ impl Plot2DWidget {
                 );
                 draw_line(
                     widget_x + dx * i,
-                    widget_y + lim_height as i32,
+                    widget_y + widget_height as i32,
                     widget_x + dx * i,
-                    widget_y + lim_height as i32 - 10,
+                    widget_y + widget_height as i32 - 10,
                 );
                 draw_text(
                     format!(
@@ -156,9 +156,9 @@ impl Plot2DWidget {
                     widget_y + dy * i,
                 );
                 draw_line(
-                    widget_x + lim_width as i32,
+                    widget_x + widget_width as i32,
                     widget_y + dy * i,
-                    widget_x + lim_width as i32 - 10,
+                    widget_x + widget_width as i32 - 10,
                     widget_y + dy * i,
                 );
                 draw_text(
