@@ -121,7 +121,7 @@ impl Plot2DWidget {
                     widget_x + dx * i,
                     widget_y + lim_height as i32,
                     widget_x + dx * i,
-                    widget_y + widget_height - 10,
+                    widget_y + lim_height as i32 - 10,
                 );
                 draw_text(
                     format!(
@@ -142,7 +142,7 @@ impl Plot2DWidget {
                     draw_line(
                         widget_x,
                         widget_y + dy * i,
-                        widget_x + lim_width as i32,
+                        widget_x + widget_width as i32,
                         widget_y + dy * i,
                     );
                 }
@@ -229,11 +229,12 @@ impl Plot2DWidget {
                 let dy = my - *zoom_y.borrow();
 
                 set_line_style(LineStyle::Dash, 1);
-                draw_rect(
+                draw_rect_with_color(
                     i32::min(*zoom_x.borrow(), *zoom_x.borrow() + dx),
                     i32::min(*zoom_y.borrow(), *zoom_y.borrow() + dy),
                     i32::abs(dx),
                     i32::abs(dy),
+                    Color::Black,
                 );
             }
 
