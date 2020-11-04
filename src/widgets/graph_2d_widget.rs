@@ -120,6 +120,10 @@ impl MyWidget for Graph2DWidget {
                                 fltk::app::redraw();
                             }
                         }
+                        Graph2DWidget::MIDDLE_BUTTON => {
+                            *wid.zoom_x.borrow_mut() = mx;
+                            *wid.zoom_y.borrow_mut() = my;
+                        }
                         Graph2DWidget::RIGHT_BUTTON => {
                             if closest_data_tip.is_some() {
                             } else {
@@ -127,10 +131,6 @@ impl MyWidget for Graph2DWidget {
                             }
 
                             fltk::app::redraw();
-                        }
-                        Graph2DWidget::MIDDLE_BUTTON => {
-                            *wid.zoom_x.borrow_mut() = mx;
-                            *wid.zoom_y.borrow_mut() = my;
                         }
                         _ => {}
                     }

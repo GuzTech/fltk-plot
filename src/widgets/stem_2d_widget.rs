@@ -73,31 +73,6 @@ impl Stem2DWidget {
             let text_width = width(caption.borrow().as_str()) as i32;
             draw_text(
                 caption.borrow().as_str(),
-                widget_x + (lim_width as i32 / 2) - (text_width / 2),
-                widget_y - 7,
-            );
-            let text_width = width(x_label.borrow().as_str()) as i32;
-            draw_text(
-                x_label.borrow().as_str(),
-                widget_x + (lim_width as i32 / 2) - (text_width / 2),
-                widget_y + lim_height as i32 + 12,
-            );
-            let text_width = width(y_label.borrow().as_str()) as i32;
-            draw_text_angled(
-                90,
-                y_label.borrow().as_str(),
-                widget_x - 5,
-                widget_y + (lim_height as i32 / 2) - (text_width / 2),
-            );
-
-            push_clip(widget_x, widget_y, widget_width, widget_height);
-
-            // Captions and labels
-            set_font(Font::Helvetica, 12);
-            set_draw_color(Color::Black);
-            let text_width = width(caption.borrow().as_str()) as i32;
-            draw_text(
-                caption.borrow().as_str(),
                 widget_x + (widget_width as i32 / 2) - (text_width / 2),
                 widget_y - 7,
             );
@@ -209,9 +184,12 @@ impl Stem2DWidget {
                             begin_line();
 
                             // Scale and shift
-                            let cx = (px - x_left) + widget_x as f64;
-                            let cy = widget_height as f64 - (py - y_left) + widget_y as f64;
-                            let c0 = (lim_height / 2.0) + widget_y as f64;
+                            let cx =
+                                ((px - x_left) / lim_width) * widget_width as f64 + widget_x as f64;
+                            let cy = widget_height as f64
+                                - ((py - y_left) / lim_height) * widget_height as f64
+                                + widget_y as f64;
+                            let c0 = (widget_height as f64 / 2.0) + widget_y as f64;
 
                             vertex(cx, c0);
                             vertex(cx, cy);
