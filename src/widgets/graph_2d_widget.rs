@@ -12,6 +12,7 @@ pub struct Graph2DWidget {
     pub widget: GraphWidget,
     pub data: Rc<RefCell<Vec<Option<Plot2DData>>>>,
     pub data_tips: Rc<RefCell<Vec<DataTip>>>,
+    pub closest_data_tip: Rc<RefCell<Option<usize>>>,
 }
 
 #[allow(dead_code)]
@@ -25,6 +26,7 @@ impl Graph2DWidget {
             widget: GraphWidget::new(x, y, width, height, caption),
             data: Rc::from(RefCell::from(Vec::new())),
             data_tips: Rc::from(RefCell::from(Vec::new())),
+            closest_data_tip: Rc::from(RefCell::from(None)),
         };
 
         x.handle();
@@ -163,7 +165,8 @@ impl MyWidget for Graph2DWidget {
         let limit_c = self.limit_c.clone();
         let limit = self.limit.clone();
         let data = self.data.clone();
-        let closest_data_tip: Rc<RefCell<Option<usize>>> = Rc::from(RefCell::from(None));
+        // let closest_data_tip: Rc<RefCell<Option<usize>>> = Rc::from(RefCell::from(None));
+        let closest_data_tip = self.closest_data_tip.clone();
         let data_tips = self.data_tips.clone();
 
         self.widget.widget.handle(move |event| {
@@ -184,7 +187,6 @@ impl MyWidget for Graph2DWidget {
                 let height = if height != 0.0 { height } else { 1.0 };
 
                 for (i, c) in data_tips.borrow().iter().enumerate() {
-                    //for closest in data_tips.iter() {
                     let px = ((c.x - limit_c.x_left) / width) * wid_width + wid_x;
                     let py = wid_height - ((c.y - limit_c.y_left) / height) * wid_height + wid_y;
                     let distance = i32::max(i32::abs(px as i32 - mx), i32::abs(py as i32 - my));
@@ -254,21 +256,21 @@ impl MyWidget for Graph2DWidget {
             match event {
                 Event::Push => {
                     let button = fltk::app::event_button();
+                    *closest_data_tip.borrow_mut() = get_closest_datatip(
+                        data_tips.clone(),
+                        mx,
+                        my,
+                        wd,
+                        ht,
+                        wid.width() as f64,
+                        wid.height() as f64,
+                        wid.x() as f64,
+                        wid.y() as f64,
+                        &limit_c.borrow(),
+                    );
 
                     match button {
                         Graph2DWidget::LEFT_BUTTON => {
-                            *closest_data_tip.borrow_mut() = get_closest_datatip(
-                                data_tips.clone(),
-                                mx,
-                                my,
-                                wd,
-                                ht,
-                                wid.width() as f64,
-                                wid.height() as f64,
-                                wid.x() as f64,
-                                wid.y() as f64,
-                                &limit_c.borrow(),
-                            );
                             // First check if user clicked on a data tip.
 
                             // Find a data tip point close to the mouse pointer.
@@ -306,19 +308,6 @@ impl MyWidget for Graph2DWidget {
                             *wid.zoom_y.borrow_mut() = my;
                         }
                         Graph2DWidget::RIGHT_BUTTON => {
-                            *closest_data_tip.borrow_mut() = get_closest_datatip(
-                                data_tips.clone(),
-                                mx,
-                                my,
-                                wd,
-                                ht,
-                                wid.width() as f64,
-                                wid.height() as f64,
-                                wid.x() as f64,
-                                wid.y() as f64,
-                                &limit_c.borrow(),
-                            );
-
                             if closest_data_tip.borrow().is_some() {
                                 data_tips
                                     .borrow_mut()
@@ -338,21 +327,13 @@ impl MyWidget for Graph2DWidget {
                     let button = fltk::app::event_button();
 
                     match button {
-                        Graph2DWidget::LEFT_BUTTON => {}
+                        Graph2DWidget::LEFT_BUTTON => {
+                            if !*wid.zooming.borrow() && closest_data_tip.borrow().is_some() {
+                                let mut mdist =
+                                    wid.width() * wid.width() + wid.height() * wid.height();
+                            }
+                        }
                         Graph2DWidget::MIDDLE_BUTTON => {
-                            *closest_data_tip.borrow_mut() = get_closest_datatip(
-                                data_tips.clone(),
-                                mx,
-                                my,
-                                wd,
-                                ht,
-                                wid.width() as f64,
-                                wid.height() as f64,
-                                wid.x() as f64,
-                                wid.y() as f64,
-                                &limit_c.borrow(),
-                            );
-
                             if closest_data_tip.borrow().is_some() {
                                 if let Some(tip_idx) = *closest_data_tip.borrow() {
                                     if let Some(tip) = data_tips.borrow_mut().get_mut(tip_idx) {
