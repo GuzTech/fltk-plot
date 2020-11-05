@@ -331,6 +331,46 @@ impl MyWidget for Graph2DWidget {
                             if !*wid.zooming.borrow() && closest_data_tip.borrow().is_some() {
                                 let mut mdist =
                                     wid.width() * wid.width() + wid.height() * wid.height();
+
+                                if let Some(dat) =
+                                    data.borrow().get(closest_data_tip.borrow().unwrap())
+                                {
+                                    if let Some(d) = dat {
+                                        for i in 0..d.length {
+                                            if let Some((mut px, mut py)) = d.get_value(i) {
+                                                px = ((px - limit_c.borrow().x_left) / wd)
+                                                    * wid.width() as f64
+                                                    + wid.x() as f64;
+                                                py = wid.height() as f64
+                                                    - ((py - limit_c.borrow().y_left) / ht)
+                                                        * wid.height() as f64
+                                                    + wid.y() as f64;
+
+                                                let dist = i32::max(
+                                                    i32::abs(px as i32 - mx),
+                                                    i32::abs(py as i32 - my),
+                                                );
+                                                if dist < mdist {
+                                                    if let Some((px, py)) = d.get_value(i) {
+                                                        mdist = dist;
+
+                                                        if let Some(tip_idx) =
+                                                            *closest_data_tip.borrow()
+                                                        {
+                                                            if let Some(tip) = data_tips
+                                                                .borrow_mut()
+                                                                .get_mut(tip_idx)
+                                                            {
+                                                                tip.x = px;
+                                                                tip.y = py;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                         Graph2DWidget::MIDDLE_BUTTON => {
