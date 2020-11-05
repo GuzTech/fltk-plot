@@ -160,16 +160,18 @@ impl MyWidget for Graph2DWidget {
 
     fn handle(&mut self) {
         let wid = self.widget.clone();
-        let limit_c = self.limit_c.clone();
-        let limit = self.limit.clone();
         let data = self.data.clone();
         let closest_data_tip = self.closest_data_tip.clone();
         let data_tips = self.data_tips.clone();
 
         self.widget.widget.handle(move |event| {
             let (mx, my) = fltk::app::event_coords();
-            let wd = limit_c.borrow().x_right - limit_c.borrow().x_left;
-            let ht = limit_c.borrow().y_right - limit_c.borrow().y_left;
+            let widget_width = wid.width();
+            let widget_height = wid.height();
+            let widget_x = wid.x();
+            let widget_y = wid.y();
+            let limit_width = wid.limit_c.borrow().x_right - wid.limit_c.borrow().x_left;
+            let limit_height = wid.limit_c.borrow().y_right - wid.limit_c.borrow().y_left;
 
             match event {
                 Event::Push => {
@@ -178,13 +180,13 @@ impl MyWidget for Graph2DWidget {
                         data_tips.clone(),
                         mx,
                         my,
-                        wd,
-                        ht,
-                        wid.width() as f64,
-                        wid.height() as f64,
-                        wid.x() as f64,
-                        wid.y() as f64,
-                        &limit_c.borrow(),
+                        limit_width,
+                        limit_height,
+                        widget_width as f64,
+                        widget_height as f64,
+                        widget_x as f64,
+                        widget_y as f64,
+                        &wid.limit_c.borrow(),
                     );
 
                     match button {
@@ -198,13 +200,13 @@ impl MyWidget for Graph2DWidget {
                                     &*data.borrow(),
                                     mx,
                                     my,
-                                    wd,
-                                    ht,
-                                    wid.width() as f64,
-                                    wid.height() as f64,
-                                    wid.x() as f64,
-                                    wid.y() as f64,
-                                    &limit_c.borrow(),
+                                    limit_width,
+                                    limit_height,
+                                    widget_width as f64,
+                                    widget_height as f64,
+                                    widget_x as f64,
+                                    widget_y as f64,
+                                    &wid.limit_c.borrow(),
                                 );
 
                                 if temp_datatip.is_some() {
@@ -231,7 +233,7 @@ impl MyWidget for Graph2DWidget {
                                     .borrow_mut()
                                     .remove(closest_data_tip.borrow().unwrap());
                             } else {
-                                *limit_c.borrow_mut() = *limit.borrow();
+                                *wid.limit_c.borrow_mut() = *wid.limit.borrow();
                             }
 
                             fltk::app::redraw();
@@ -248,7 +250,7 @@ impl MyWidget for Graph2DWidget {
                         Graph2DWidget::LEFT_BUTTON => {
                             if !*wid.zooming.borrow() && closest_data_tip.borrow().is_some() {
                                 let mut mdist =
-                                    wid.width() * wid.width() + wid.height() * wid.height();
+                                    widget_width * widget_width + widget_height * widget_height;
 
                                 let mut data_tip = DataTip::default();
 
@@ -263,13 +265,15 @@ impl MyWidget for Graph2DWidget {
                                         if let Some(d) = dat {
                                             for i in 0..d.length {
                                                 if let Some((mut px, mut py)) = d.get_value(i) {
-                                                    px = ((px - limit_c.borrow().x_left) / wd)
-                                                        * wid.width() as f64
-                                                        + wid.x() as f64;
-                                                    py = wid.height() as f64
-                                                        - ((py - limit_c.borrow().y_left) / ht)
-                                                            * wid.height() as f64
-                                                        + wid.y() as f64;
+                                                    px = ((px - wid.limit_c.borrow().x_left)
+                                                        / limit_width)
+                                                        * widget_width as f64
+                                                        + widget_x as f64;
+                                                    py = widget_height as f64
+                                                        - ((py - wid.limit_c.borrow().y_left)
+                                                            / limit_height)
+                                                            * widget_height as f64
+                                                        + widget_y as f64;
 
                                                     let dist = i32::max(
                                                         i32::abs(px as i32 - mx),
@@ -305,13 +309,13 @@ impl MyWidget for Graph2DWidget {
                                     if let Some(tip) = data_tips.borrow_mut().get_mut(tip_idx) {
                                         let mut px = tip.x;
                                         let mut py = tip.y;
-                                        px = ((px - limit_c.borrow().x_left) / wd)
-                                            * wid.width() as f64
-                                            + wid.x() as f64;
-                                        py = wid.height() as f64
-                                            - ((py - limit_c.borrow().y_left) / ht)
-                                                * wid.height() as f64
-                                            + wid.y() as f64;
+                                        px = ((px - wid.limit_c.borrow().x_left) / limit_width)
+                                            * widget_width as f64
+                                            + widget_x as f64;
+                                        py = widget_height as f64
+                                            - ((py - wid.limit_c.borrow().y_left) / limit_height)
+                                                * widget_height as f64
+                                            + widget_y as f64;
 
                                         tip.lx = mx - px as i32;
                                         tip.ly = my - py as i32;
@@ -322,16 +326,16 @@ impl MyWidget for Graph2DWidget {
                                 let mut dy = (my - *wid.zoom_y.borrow()) as f64;
 
                                 if f64::abs(dx) >= 1.0 || f64::abs(dy) >= 1.0 {
-                                    dx *= wd / wid.width() as f64;
-                                    dy *= ht / wid.height() as f64;
+                                    dx *= limit_width / widget_width as f64;
+                                    dy *= limit_height / widget_height as f64;
 
                                     *wid.zoom_x.borrow_mut() = mx;
                                     *wid.zoom_y.borrow_mut() = my;
 
-                                    limit_c.borrow_mut().x_left -= dx;
-                                    limit_c.borrow_mut().x_right -= dx;
-                                    limit_c.borrow_mut().y_left += dy;
-                                    limit_c.borrow_mut().y_right += dy;
+                                    wid.limit_c.borrow_mut().x_left -= dx;
+                                    wid.limit_c.borrow_mut().x_right -= dx;
+                                    wid.limit_c.borrow_mut().y_left += dy;
+                                    wid.limit_c.borrow_mut().y_right += dy;
                                 }
                             }
                         }
@@ -347,11 +351,6 @@ impl MyWidget for Graph2DWidget {
 
                     match button {
                         Graph2DWidget::LEFT_BUTTON if *wid.zooming.borrow() => {
-                            let widget_x = wid.x();
-                            let widget_y = wid.y();
-                            let widget_width = wid.width();
-                            let widget_height = wid.height();
-
                             let zoom_x = *wid.zoom_x.borrow();
                             let zoom_y = *wid.zoom_y.borrow();
 
@@ -374,23 +373,24 @@ impl MyWidget for Graph2DWidget {
                                 dy = i32::min(dy, widget_height + widget_y - zoom_y);
 
                                 // Scale + shift
-                                let x_left = limit_c.borrow().x_left;
-                                let y_left = limit_c.borrow().y_left;
+                                let x_left = wid.limit_c.borrow().x_left;
+                                let y_left = wid.limit_c.borrow().y_left;
 
-                                limit_c.borrow_mut().x_left =
-                                    ((zoom_x - widget_x) as f64 / widget_width as f64) * wd
-                                        + x_left;
-                                let x_left = limit_c.borrow().x_left;
-                                limit_c.borrow_mut().x_right =
-                                    x_left + (dx as f64 / widget_width as f64) * wd;
-                                limit_c.borrow_mut().y_left =
+                                wid.limit_c.borrow_mut().x_left = ((zoom_x - widget_x) as f64
+                                    / widget_width as f64)
+                                    * limit_width
+                                    + x_left;
+                                let x_left = wid.limit_c.borrow().x_left;
+                                wid.limit_c.borrow_mut().x_right =
+                                    x_left + (dx as f64 / widget_width as f64) * limit_width;
+                                wid.limit_c.borrow_mut().y_left =
                                     ((widget_y + widget_height - dy - zoom_y) as f64
                                         / widget_height as f64)
-                                        * ht
+                                        * limit_height
                                         + y_left;
-                                let y_left = limit_c.borrow().y_left;
-                                limit_c.borrow_mut().y_right =
-                                    y_left + (dy as f64 / widget_height as f64) * ht;
+                                let y_left = wid.limit_c.borrow().y_left;
+                                wid.limit_c.borrow_mut().y_right =
+                                    y_left + (dy as f64 / widget_height as f64) * limit_height;
                             }
 
                             fltk::app::redraw();
@@ -406,16 +406,14 @@ impl MyWidget for Graph2DWidget {
                     let coefficient = fltk::app::event_dy() as f64 * -0.1;
 
                     // mx, my are in window space.
-                    // x(), y() are in plot widget coordinates.
-                    // w(), h() are the absolute widget sizes in pixels.
-                    let x = wid.widget.x() as f64;
-                    let y = wid.widget.y() as f64;
-                    let w_wd = wid.widget.width() as f64;
-                    let w_ht = wid.widget.height() as f64;
-                    let mxx = (mx as f64 - x) / w_wd * wd;
-                    let myy = (w_ht + y - my as f64) / w_ht * ht;
-                    let dxr = wd - mxx as f64;
-                    let dyr = ht - myy as f64;
+                    // widget_x, widget_y are in plot widget coordinates.
+                    // widget_width, widget_height are the absolute widget sizes in pixels.
+                    let mxx = (mx as f64 - widget_x as f64) / widget_width as f64 * limit_width;
+                    let myy = (widget_height as f64 + widget_y as f64 - my as f64)
+                        / widget_height as f64
+                        * limit_height;
+                    let dxr = limit_width - mxx as f64;
+                    let dyr = limit_height - myy as f64;
 
                     let tmp_limit = *wid.limit_c.borrow();
 
