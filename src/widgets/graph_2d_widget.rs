@@ -11,7 +11,7 @@ use crate::widgets::{graph_widget::*, widget::*};
 pub struct Graph2DWidget {
     pub widget: GraphWidget,
     pub data: Rc<RefCell<Vec<Option<Plot2DData>>>>,
-    //closest_data_tip: Rc<RefCell<Option<&mut DataTip>>>,
+    pub data_tips: Rc<RefCell<Vec<DataTip>>>,
 }
 
 #[allow(dead_code)]
@@ -24,11 +24,91 @@ impl Graph2DWidget {
         let mut x = Graph2DWidget {
             widget: GraphWidget::new(x, y, width, height, caption),
             data: Rc::from(RefCell::from(Vec::new())),
+            data_tips: Rc::from(RefCell::from(Vec::new())),
         };
 
         x.handle();
         x
     }
+
+    // pub fn get_closest_point(
+    //     &self,
+    //     data: &[Option<Plot2DData>],
+    //     mx: i32,
+    //     my: i32,
+    //     width: f64,
+    //     height: f64,
+    // ) -> Option<DataTip> {
+    //     let widget_width = self.widget.width() as f64;
+    //     let widget_height = self.widget.height() as f64;
+    //     let mut m_dist = widget_width * widget_width + widget_height * widget_height;
+    //
+    //     let mut tip = DataTip::default();
+    //
+    //     for (j, d) in data.iter().enumerate() {
+    //         if d.is_some() {
+    //             let d = d.as_ref().unwrap();
+    //
+    //             for i in 0..d.length {
+    //                 if let Some((mut px, mut py)) = d.get_value(i) {
+    //                     // Scale and shift
+    //                     px = ((px - self.limit_c.borrow().x_left) / width) * widget_width
+    //                         + self.widget.x() as f64;
+    //                     py = widget_height
+    //                         - ((py - self.limit_c.borrow().y_left) / height) * widget_height
+    //                         + self.widget.y() as f64;
+    //
+    //                     let dist = f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
+    //                     if dist < m_dist {
+    //                         if let Some((px, py)) = d.get_value(i) {
+    //                             m_dist = dist;
+    //                             tip.x = px;
+    //                             tip.y = py;
+    //                             tip.plot = j;
+    //                         }
+    //                     }
+    //                 };
+    //             }
+    //         }
+    //     }
+    //
+    //     if m_dist <= 10.0 {
+    //         Some(tip)
+    //     } else {
+    //         None
+    //     }
+    // }
+
+    // pub fn get_closest_datatip(
+    //     &self,
+    //     data_tips: &[&DataTip],
+    //     mx: i32,
+    //     my: i32,
+    //     width: f64,
+    //     height: f64,
+    // ) -> Option<DataTip> {
+    //     let closest = None;
+    //
+    //     let height = if height != 0.0 { height } else { 1.0 };
+    //
+    //     //for closest in &*self.data_tips.borrow_mut() {
+    //     for &closest in data_tips.iter() {
+    //         let px = ((closest.x - self.limit_c.borrow().x_left) / width)
+    //             * self.widget.width() as f64
+    //             + self.widget.x() as f64;
+    //         let py = self.widget.height() as f64
+    //             - ((closest.y - self.limit_c.borrow().y_left) / height)
+    //                 * self.widget.height() as f64
+    //             + self.widget.y() as f64;
+    //         let distance = i32::max(i32::abs(px as i32 - mx), i32::abs(py as i32 - my));
+    //
+    //         if distance < 15 {
+    //             break;
+    //         }
+    //     }
+    //
+    //     closest
+    // }
 }
 
 impl MyWidget for Graph2DWidget {
@@ -83,34 +163,135 @@ impl MyWidget for Graph2DWidget {
         let limit_c = self.limit_c.clone();
         let limit = self.limit.clone();
         let data = self.data.clone();
+        let closest_data_tip: Rc<RefCell<Option<usize>>> = Rc::from(RefCell::from(None));
         let data_tips = self.data_tips.clone();
 
         self.widget.widget.handle(move |event| {
+            fn get_closest_datatip(
+                data_tips: Rc<RefCell<Vec<DataTip>>>,
+                mx: i32,
+                my: i32,
+                width: f64,
+                height: f64,
+                wid_width: f64,
+                wid_height: f64,
+                wid_x: f64,
+                wid_y: f64,
+                limit_c: &Limit,
+            ) -> Option<usize> {
+                let mut closest: Option<usize> = None;
+
+                let height = if height != 0.0 { height } else { 1.0 };
+
+                for (i, c) in data_tips.borrow().iter().enumerate() {
+                    //for closest in data_tips.iter() {
+                    let px = ((c.x - limit_c.x_left) / width) * wid_width + wid_x;
+                    let py = wid_height - ((c.y - limit_c.y_left) / height) * wid_height + wid_y;
+                    let distance = i32::max(i32::abs(px as i32 - mx), i32::abs(py as i32 - my));
+
+                    if distance < 15 {
+                        closest = Some(i);
+                        break;
+                    }
+                }
+
+                closest
+            }
+
+            fn get_closest_point(
+                data: &[Option<Plot2DData>],
+                mx: i32,
+                my: i32,
+                width: f64,
+                height: f64,
+                wid_width: f64,
+                wid_height: f64,
+                wid_x: f64,
+                wid_y: f64,
+                limit_c: &Limit,
+            ) -> Option<DataTip> {
+                let mut m_dist = wid_width * wid_width + wid_height * wid_height;
+
+                let mut tip = DataTip::default();
+
+                for (j, d) in data.iter().enumerate() {
+                    if d.is_some() {
+                        let d = d.as_ref().unwrap();
+
+                        for i in 0..d.length {
+                            if let Some((mut px, mut py)) = d.get_value(i) {
+                                // Scale and shift
+                                px = ((px - limit_c.x_left) / width) * wid_width + wid_x;
+                                py = wid_height - ((py - limit_c.y_left) / height) * wid_height
+                                    + wid_y;
+
+                                let dist =
+                                    f64::max(f64::abs(px - mx as f64), f64::abs(py - my as f64));
+                                if dist < m_dist {
+                                    if let Some((px, py)) = d.get_value(i) {
+                                        m_dist = dist;
+                                        tip.x = px;
+                                        tip.y = py;
+                                        tip.plot = j;
+                                    }
+                                }
+                            };
+                        }
+                    }
+                }
+
+                if m_dist <= 10.0 {
+                    Some(tip)
+                } else {
+                    None
+                }
+            }
+
             let (mx, my) = fltk::app::event_coords();
             let wd = limit_c.borrow().x_right - limit_c.borrow().x_left;
             let ht = limit_c.borrow().y_right - limit_c.borrow().y_left;
-            let mut closest_data_tip = None;
 
             match event {
                 Event::Push => {
-                    closest_data_tip = wid.get_closest_datatip(mx, my, wd, ht);
                     let button = fltk::app::event_button();
 
                     match button {
                         Graph2DWidget::LEFT_BUTTON => {
+                            *closest_data_tip.borrow_mut() = get_closest_datatip(
+                                data_tips.clone(),
+                                mx,
+                                my,
+                                wd,
+                                ht,
+                                wid.width() as f64,
+                                wid.height() as f64,
+                                wid.x() as f64,
+                                wid.y() as f64,
+                                &limit_c.borrow(),
+                            );
                             // First check if user clicked on a data tip.
 
                             // Find a data tip point close to the mouse pointer.
-                            if closest_data_tip.is_none() {
+                            if closest_data_tip.borrow().is_none() {
                                 // User didn't click on an existing data tip.
-                                let temp_datatip =
-                                    wid.get_closest_point(&*data.borrow(), mx, my, wd, ht);
+                                let temp_datatip = get_closest_point(
+                                    &*data.borrow(),
+                                    mx,
+                                    my,
+                                    wd,
+                                    ht,
+                                    wid.width() as f64,
+                                    wid.height() as f64,
+                                    wid.x() as f64,
+                                    wid.y() as f64,
+                                    &limit_c.borrow(),
+                                );
 
                                 if temp_datatip.is_some() {
-                                    let mut temp_datatip = temp_datatip.unwrap();
+                                    let mut temp_datatip: DataTip = temp_datatip.unwrap();
                                     temp_datatip.lx = 10;
                                     temp_datatip.ly = -10;
-                                    (*wid.data_tips.borrow_mut()).push(temp_datatip);
+                                    (*data_tips.borrow_mut()).push(temp_datatip);
                                 } else {
                                     *wid.zooming.borrow_mut() = true;
                                     *wid.zoom_x.borrow_mut() = mx;
@@ -125,7 +306,23 @@ impl MyWidget for Graph2DWidget {
                             *wid.zoom_y.borrow_mut() = my;
                         }
                         Graph2DWidget::RIGHT_BUTTON => {
-                            if closest_data_tip.is_some() {
+                            *closest_data_tip.borrow_mut() = get_closest_datatip(
+                                data_tips.clone(),
+                                mx,
+                                my,
+                                wd,
+                                ht,
+                                wid.width() as f64,
+                                wid.height() as f64,
+                                wid.x() as f64,
+                                wid.y() as f64,
+                                &limit_c.borrow(),
+                            );
+
+                            if closest_data_tip.borrow().is_some() {
+                                data_tips
+                                    .borrow_mut()
+                                    .remove(closest_data_tip.borrow().unwrap());
                             } else {
                                 *limit_c.borrow_mut() = *limit.borrow();
                             }
@@ -143,21 +340,52 @@ impl MyWidget for Graph2DWidget {
                     match button {
                         Graph2DWidget::LEFT_BUTTON => {}
                         Graph2DWidget::MIDDLE_BUTTON => {
-                            if closest_data_tip.is_some() {
-                                let mut tip = closest_data_tip.unwrap();
+                            *closest_data_tip.borrow_mut() = get_closest_datatip(
+                                data_tips.clone(),
+                                mx,
+                                my,
+                                wd,
+                                ht,
+                                wid.width() as f64,
+                                wid.height() as f64,
+                                wid.x() as f64,
+                                wid.y() as f64,
+                                &limit_c.borrow(),
+                            );
 
-                                let mut px = tip.x;
-                                let mut py = tip.y;
-                                px = ((px - limit_c.borrow().x_left) / wd) * wid.width() as f64
-                                    + wid.x() as f64;
-                                py = wid.height() as f64
-                                    - ((py - limit_c.borrow().y_left) / ht) * wid.height() as f64
-                                    + wid.y() as f64;
+                            if closest_data_tip.borrow().is_some() {
+                                if let Some(tip_idx) = *closest_data_tip.borrow() {
+                                    if let Some(tip) = data_tips.borrow_mut().get_mut(tip_idx) {
+                                        let mut px = tip.x;
+                                        let mut py = tip.y;
+                                        px = ((px - limit_c.borrow().x_left) / wd)
+                                            * wid.width() as f64
+                                            + wid.x() as f64;
+                                        py = wid.height() as f64
+                                            - ((py - limit_c.borrow().y_left) / ht)
+                                                * wid.height() as f64
+                                            + wid.y() as f64;
 
-                                tip.lx = mx - px as i32;
-                                tip.ly = my - py as i32;
+                                        tip.lx = mx - px as i32;
+                                        tip.ly = my - py as i32;
+                                    }
+                                }
                             } else {
-                                let mut dx = mx - *wid.zoom_x.borrow();
+                                let mut dx = (mx - *wid.zoom_x.borrow()) as f64;
+                                let mut dy = (my - *wid.zoom_y.borrow()) as f64;
+
+                                if f64::abs(dx) >= 1.0 || f64::abs(dy) >= 1.0 {
+                                    dx *= wd / wid.width() as f64;
+                                    dy *= ht / wid.height() as f64;
+
+                                    *wid.zoom_x.borrow_mut() = mx;
+                                    *wid.zoom_y.borrow_mut() = my;
+
+                                    limit_c.borrow_mut().x_left -= dx;
+                                    limit_c.borrow_mut().x_right -= dx;
+                                    limit_c.borrow_mut().y_left += dy;
+                                    limit_c.borrow_mut().y_right += dy;
+                                }
                             }
                         }
                         _ => {}
