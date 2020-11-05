@@ -165,7 +165,6 @@ impl MyWidget for Graph2DWidget {
         let limit_c = self.limit_c.clone();
         let limit = self.limit.clone();
         let data = self.data.clone();
-        // let closest_data_tip: Rc<RefCell<Option<usize>>> = Rc::from(RefCell::from(None));
         let closest_data_tip = self.closest_data_tip.clone();
         let data_tips = self.data_tips.clone();
 
@@ -332,37 +331,47 @@ impl MyWidget for Graph2DWidget {
                                 let mut mdist =
                                     wid.width() * wid.width() + wid.height() * wid.height();
 
-                                if let Some(dat) =
-                                    data.borrow().get(closest_data_tip.borrow().unwrap())
+                                let mut data_tip = DataTip::default();
+                                let mut plot_idx = usize::MAX;
+
+                                if let Some(tip) =
+                                    data_tips.borrow().get(closest_data_tip.borrow().unwrap())
                                 {
-                                    if let Some(d) = dat {
-                                        for i in 0..d.length {
-                                            if let Some((mut px, mut py)) = d.get_value(i) {
-                                                px = ((px - limit_c.borrow().x_left) / wd)
-                                                    * wid.width() as f64
-                                                    + wid.x() as f64;
-                                                py = wid.height() as f64
-                                                    - ((py - limit_c.borrow().y_left) / ht)
-                                                        * wid.height() as f64
-                                                    + wid.y() as f64;
+                                    data_tip = *tip;
+                                    plot_idx = data_tip.plot;
+                                };
 
-                                                let dist = i32::max(
-                                                    i32::abs(px as i32 - mx),
-                                                    i32::abs(py as i32 - my),
-                                                );
-                                                if dist < mdist {
-                                                    if let Some((px, py)) = d.get_value(i) {
-                                                        mdist = dist;
+                                if plot_idx < usize::MAX {
+                                    if let Some(dat) = data.borrow().get(plot_idx) {
+                                        if let Some(d) = dat {
+                                            for i in 0..d.length {
+                                                if let Some((mut px, mut py)) = d.get_value(i) {
+                                                    px = ((px - limit_c.borrow().x_left) / wd)
+                                                        * wid.width() as f64
+                                                        + wid.x() as f64;
+                                                    py = wid.height() as f64
+                                                        - ((py - limit_c.borrow().y_left) / ht)
+                                                            * wid.height() as f64
+                                                        + wid.y() as f64;
 
-                                                        if let Some(tip_idx) =
-                                                            *closest_data_tip.borrow()
-                                                        {
-                                                            if let Some(tip) = data_tips
-                                                                .borrow_mut()
-                                                                .get_mut(tip_idx)
+                                                    let dist = i32::max(
+                                                        i32::abs(px as i32 - mx),
+                                                        i32::abs(py as i32 - my),
+                                                    );
+                                                    if dist < mdist {
+                                                        if let Some((px, py)) = d.get_value(i) {
+                                                            mdist = dist;
+
+                                                            if let Some(tip_idx) =
+                                                                *closest_data_tip.borrow()
                                                             {
-                                                                tip.x = px;
-                                                                tip.y = py;
+                                                                if let Some(tip) = data_tips
+                                                                    .borrow_mut()
+                                                                    .get_mut(tip_idx)
+                                                                {
+                                                                    tip.x = px;
+                                                                    tip.y = py;
+                                                                }
                                                             }
                                                         }
                                                     }
