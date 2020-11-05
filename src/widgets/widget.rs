@@ -16,13 +16,25 @@ impl std::fmt::Debug for dyn MyWidget {
     }
 }
 
-#[derive(Copy, Clone, Debug, Default, PartialEq)]
+#[derive(Copy, Clone, Debug, PartialEq)]
 pub struct DataTip {
     pub x: f64,
     pub y: f64,
-    pub plot: usize,
+    pub plot_idx: usize,
     pub lx: i32,
     pub ly: i32,
+}
+
+impl Default for DataTip {
+    fn default() -> Self {
+        DataTip {
+            x: 0.0,
+            y: 0.0,
+            plot_idx: usize::MAX,
+            lx: 0,
+            ly: 0,
+        }
+    }
 }
 
 #[derive(Debug, Copy, Clone)]

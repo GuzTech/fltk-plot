@@ -233,7 +233,7 @@ impl MyWidget for Graph2DWidget {
                                         m_dist = dist;
                                         tip.x = px;
                                         tip.y = py;
-                                        tip.plot = j;
+                                        tip.plot_idx = j;
                                     }
                                 }
                             };
@@ -332,17 +332,15 @@ impl MyWidget for Graph2DWidget {
                                     wid.width() * wid.width() + wid.height() * wid.height();
 
                                 let mut data_tip = DataTip::default();
-                                let mut plot_idx = usize::MAX;
 
                                 if let Some(tip) =
                                     data_tips.borrow().get(closest_data_tip.borrow().unwrap())
                                 {
                                     data_tip = *tip;
-                                    plot_idx = data_tip.plot;
                                 };
 
-                                if plot_idx < usize::MAX {
-                                    if let Some(dat) = data.borrow().get(plot_idx) {
+                                if data_tip.plot_idx < usize::MAX {
+                                    if let Some(dat) = data.borrow().get(data_tip.plot_idx) {
                                         if let Some(d) = dat {
                                             for i in 0..d.length {
                                                 if let Some((mut px, mut py)) = d.get_value(i) {
