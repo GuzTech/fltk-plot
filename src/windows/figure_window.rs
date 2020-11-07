@@ -32,11 +32,13 @@ impl FigureWindow {
         let mut v = Vec::with_capacity(rows * cols);
         v.resize_with(rows * cols, || None::<Box<dyn MyWidget>>);
 
+        // This is a work-around to make the window resizable. Calling make_resizable(true)
+        // after using Window::default() does not make it resizable.
+        let mut win = DoubleWindow::new(0, 0, w, h, lb).center_screen();
+        win.make_resizable(true);
+
         FigureWindow {
-            window: DoubleWindow::default()
-                .with_size(w, h)
-                .with_label(lb)
-                .center_screen(),
+            window: win,
             plots: v,
             rows,
             cols,
