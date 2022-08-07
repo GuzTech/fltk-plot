@@ -2,9 +2,9 @@
 name = "flplot-rs"
 version = "0.1.0"
 authors = ["Oguz Meteer <info@guztech.nl>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-fltk = { version = "^0.10" }
+fltk = { version = "^0.14" }

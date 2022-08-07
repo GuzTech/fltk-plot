@@ -7,7 +7,7 @@ use fltk::draw::*;
 use crate::data::plot_2d_data::*;
 use crate::widgets::{graph_widget::*, widget::*};
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Graph2DWidget {
     pub widget: GraphWidget,
     pub data: Rc<RefCell<Vec<Option<Plot2DData>>>>,

@@ -5,7 +5,7 @@ use fltk::draw::*;
 use crate::widgets::graph_2d_widget::*;
 use crate::widgets::widget::MyWidget;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Stem2DWidget {
     pub widget: Graph2DWidget,
 }

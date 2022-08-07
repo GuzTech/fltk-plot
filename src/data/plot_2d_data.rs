@@ -1,6 +1,6 @@
 use fltk::draw::*;
 
-#[derive(Clone, Debug)]
+#[derive(Clone)]
 pub struct Plot2DData {
     pub style: LineStyle,
     pub width: i32,
