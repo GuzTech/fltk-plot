@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use fltk::draw::*;
+use fltk::{prelude::*, enums::*, draw::*};
 
 use crate::widgets::graph_2d_widget::*;
 use crate::widgets::widget::MyWidget;
@@ -36,7 +36,7 @@ impl Stem2DWidget {
         let zoom_x = self.widget.zoom_x.clone();
         let zoom_y = self.widget.zoom_y.clone();
 
-        self.widget.draw2(move |p| {
+        self.widget.widget.draw(move |p| {
             let lim_width = limit_c.borrow().x_right - limit_c.borrow().x_left;
             let lim_height = limit_c.borrow().y_right - limit_c.borrow().y_left;
 

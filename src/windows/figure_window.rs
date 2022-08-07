@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
 
-use fltk::{draw::*, window::*};
+use fltk::{prelude::*, enums::Color, draw::*, window::*};
 
 use crate::widgets::plot_2d_widget::Plot2DWidget;
 use crate::widgets::stem_2d_widget::Stem2DWidget;
@@ -9,9 +9,9 @@ use crate::widgets::widget::MyWidget;
 #[allow(dead_code)]
 #[derive(Debug)]
 pub enum PlotType {
-    PLOT,
-    STEM,
-    QUIVER,
+    Plot,
+    Stem,
+    Quiver,
 }
 
 #[derive(Debug)]
@@ -75,7 +75,7 @@ impl FigureWindow {
             self.window.begin();
 
             match plot_type {
-                PlotType::PLOT => {
+                PlotType::Plot => {
                     let mut plot_widget: Box<dyn MyWidget> = Box::new(Plot2DWidget::new(
                         posx + FigureWindow::YLBL_SPC,
                         posy + FigureWindow::CAP_SPC,
@@ -86,7 +86,7 @@ impl FigureWindow {
                     plot_widget.put_data(x, y, style, width, color);
                     self.plots[subplot] = Some(plot_widget);
                 }
-                PlotType::STEM => {
+                PlotType::Stem => {
                     let mut stem_widget: Box<dyn MyWidget> = Box::new(Stem2DWidget::new(
                         posx + FigureWindow::YLBL_SPC,
                         posy + FigureWindow::CAP_SPC,
@@ -97,7 +97,7 @@ impl FigureWindow {
                     stem_widget.put_data(x, y, style, width, color);
                     self.plots[subplot] = Some(stem_widget);
                 }
-                PlotType::QUIVER => {}
+                PlotType::Quiver => {}
             }
 
             self.window.end();
@@ -132,7 +132,7 @@ impl FigureWindow {
         subplot: usize,
     ) {
         if !self.does_subplot_exist(subplot) {
-            self.create_subplot(x, y, style, width, color, subplot, PlotType::PLOT);
+            self.create_subplot(x, y, style, width, color, subplot, PlotType::Plot);
         } else {
             self.update_subplot(x, y, style, width, color, subplot);
         }
@@ -148,7 +148,7 @@ impl FigureWindow {
         subplot: usize,
     ) {
         if !self.does_subplot_exist(subplot) {
-            self.create_subplot(x, y, style, width, color, subplot, PlotType::STEM);
+            self.create_subplot(x, y, style, width, color, subplot, PlotType::Stem);
         } else {
             self.update_subplot(x, y, style, width, color, subplot);
         }

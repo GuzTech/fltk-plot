@@ -1,4 +1,4 @@
-use fltk::draw::*;
+use fltk::{enums::Color, draw::*};
 
 #[derive(Clone)]
 pub struct Plot2DData {

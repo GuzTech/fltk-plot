@@ -1,5 +1,4 @@
-pub use fltk::prelude::*;
-use fltk::{app::*, draw::*};
+use fltk::{prelude::*, enums::*, app::*, draw::*};
 
 mod data;
 mod widgets;

@@ -2,7 +2,8 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
-use fltk::draw::*;
+use fltk::app::MouseWheel;
+use fltk::{prelude::*, enums::*, draw::*};
 
 use crate::data::plot_2d_data::*;
 use crate::widgets::{graph_widget::*, widget::*};
@@ -164,7 +165,7 @@ impl MyWidget for Graph2DWidget {
         let closest_data_tip = self.closest_data_tip.clone();
         let data_tips = self.data_tips.clone();
 
-        self.widget.widget.handle(move |event| {
+        self.widget.widget.handle(move |_, event| {
             let (mx, my) = fltk::app::event_coords();
             let widget_width = wid.width();
             let widget_height = wid.height();
@@ -209,8 +210,7 @@ impl MyWidget for Graph2DWidget {
                                     &wid.limit_c.borrow(),
                                 );
 
-                                if temp_datatip.is_some() {
-                                    let mut temp_datatip: DataTip = temp_datatip.unwrap();
+                                if let Some(mut temp_datatip) = temp_datatip {
                                     temp_datatip.lx = 10;
                                     temp_datatip.ly = -10;
                                     (*data_tips.borrow_mut()).push(temp_datatip);
@@ -401,9 +401,13 @@ impl MyWidget for Graph2DWidget {
                     true
                 }
                 Event::MouseWheel => {
-                    // app::event_dx() gives horizontal scrolling values.
-                    // app::event_dy() gives vertical scrolling values. -1 is zooming in, 1 is zooming out.
-                    let coefficient = fltk::app::event_dy() as f64 * -0.1;
+                    let coefficient = match fltk::app::event_dy() {
+                        MouseWheel::None => 0.0,
+                        MouseWheel::Down => 0.1,
+                        MouseWheel::Up => -0.1,
+                        MouseWheel::Right => 0.0,
+                        MouseWheel::Left => 0.0,
+                    };
 
                     // mx, my are in window space.
                     // widget_x, widget_y are in plot widget coordinates.

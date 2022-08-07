@@ -1,4 +1,4 @@
-use fltk::draw::*;
+use fltk::{enums::Color, draw::*};
 
 pub trait MyWidget {
     fn put_data(&mut self, x: &[f64], y: &[f64], style: LineStyle, width: i32, color: Color);

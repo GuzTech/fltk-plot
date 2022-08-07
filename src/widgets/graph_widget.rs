@@ -2,7 +2,7 @@ use std::cell::RefCell;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
 
-use fltk::{app::*, draw::*, widget::*};
+use fltk::{prelude::*, enums::Color, app::*, draw::*, widget::*};
 
 use crate::widgets::widget::*;
 
@@ -33,7 +33,7 @@ impl GraphWidget {
             y_right: height as f64,
         };
         GraphWidget {
-            widget: Widget::new(x, y, width, height, caption),
+            widget: Widget::new(x, y, width, height, None).with_label(caption),
             x_label: Rc::from(RefCell::from(String::default())),
             y_label: Rc::from(RefCell::from(String::default())),
             caption: Rc::from(RefCell::from(caption.to_string())),
