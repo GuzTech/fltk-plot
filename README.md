@@ -1,2 +1,2 @@
-# flplot-rs
-An interactive plotting library for Rust
+# fltk-plot
+An interactive plotting library for Rust, similar to Matlab
