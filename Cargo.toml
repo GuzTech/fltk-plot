@@ -1,6 +1,6 @@
 [package]
-name = "flplot-rs"
-version = "0.1.0"
+name = "fltk-plot"
+version = "0.2.0"
 authors = ["Oguz Meteer <info@guztech.nl>"]
 edition = "2021"
 
