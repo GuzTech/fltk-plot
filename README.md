@@ -17,7 +17,7 @@ fltk-plot = { git = "https://github.com/GuzTech/fltk-plot", branch = "main" }
 fltk = { version = "^1.3", features = ["fltk-bundled"] }
 ```
 
-An example [hello world](https://github.com/GuzTech/fltk-plot/examples/hello_world.rs) application:
+An example [hello world](https://github.com/GuzTech/fltk-plot/blob/main/examples/hello_world.rs) application:
 
 ```rust
 
